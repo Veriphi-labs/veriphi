@@ -32,7 +32,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ## Patent Notice
 
 This software implements technology described in one or more patent applications
-filed by [Your Company]. A commercial license provides the licensee with broad
+filed by Veriphi Labs LTD. A commercial license provides the licensee with broad
 rights to use this software, including a license to any applicable patents,
 for proprietary and closed-source use.
 
