@@ -1,0 +1,31 @@
+[build-system]
+requires = ["maturin>=1.6,<2"]
+build-backend = "maturin"
+
+[project]
+name = "veriphi-core"
+version = "0.1.0"
+description = "Python bindings for veriphi-core"
+readme = "README.md"
+authors = [{ name = "Veriphi Labs LTD" }]
+license = "AGPL-3.0"
+requires-python = ">=3.9"
+dependencies = [
+    "numpy==2.3.2",
+    "pycryptodome==3.23.0",
+    "pytest==8.4.1"
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Rust",
+  "License :: OSI Approved :: GNU Affero General Public License v3",
+  "Operating System :: OS Independent",
+]
+
+# maturin config
+[tool.maturin]
+bindings = "pyo3"
+abi3 = true
+cargo-manifest-path = "rust/veriphi-core-py/Cargo.toml"
+python-source = "python"
+module-name = "veriphi_core.veriphi_core_py"

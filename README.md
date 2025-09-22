@@ -1,6 +1,16 @@
 # veriphi
 
+## Builds
+Install rust, if you don't already have it
 
+### Python
+install maturin 
+
+`pip install maturin`
+
+To build python bindings run the following code from the repo root
+
+`maturin develop -m rust/veriphi-core-py/Cargo.toml --release`
 
 ## License
 

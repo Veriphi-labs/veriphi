@@ -1,0 +1,14 @@
+[package]
+name = "veriphi-core-py"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "veriphi_core_py"
+crate-type = ["cdylib"]        
+
+[dependencies]
+pyo3 = { version = "0.25.1", features = ["extension-module", "abi3-py39"] }
+pyo3-ffi = "0.25.0"
+numpy    = "0.25.0"
+veriphi-core = { path = "../veriphi-core" }
