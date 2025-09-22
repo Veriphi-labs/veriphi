@@ -1,9 +1,9 @@
 # ============================
 # Core Rust / Cargo
 # ============================
-rust/target              # Cargo build output
-**/*.rs.bk               # Backup files from rustfmt or editors
-rust/Cargo.lock               # Ignore for libraries, commit if/when you add binaries
+rust/target/
+**/*.rs.bk               
+rust/Cargo.lock        
 
 # ============================
 # Python Bindings
