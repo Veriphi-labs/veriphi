@@ -1,0 +1,28 @@
+[package]
+name = "veriphi-core"
+version = "0.1.0"
+edition = "2024"
+description = "Veriphi core algorithms (Rust)"
+repository = "https://github.com/Veriphi-labs/veriphi"
+readme = "README.md"
+
+license = "AGPL-3.0-only"
+
+keywords = ["agents", "ai", "security", "rust"]
+categories = ["authentication", "security"]
+
+[lib]
+name = "veriphi_core"
+path = "src/lib.rs"
+
+[dependencies]
+hkdf = "0.12"
+rand = "0.9.1"
+rand_chacha = "0.9"
+sha2 = "0.10"
+zeroize="1.8.1"
+thiserror = "2.0"
+hmac = "0.12"
+rayon = "1.8"
+dashmap = "6.1"
+

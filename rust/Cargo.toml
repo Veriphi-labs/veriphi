@@ -1,0 +1,3 @@
+[workspace]
+members = ["veriphi-core"]
+resolver = "2"
