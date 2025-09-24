@@ -2,12 +2,10 @@ use napi::bindgen_prelude::BigInt;
 use napi::bindgen_prelude::Buffer;
 use napi_derive::napi;
 
-use veriphi_core::{
-    utils,
-    involute,
-    encrypt,
-    decrypt,
-};
+use veriphi_core::utils;
+use veriphi_core::involute;
+use veriphi_core::encrypt;
+use veriphi_core::decrypt;
 
 
 #[napi]

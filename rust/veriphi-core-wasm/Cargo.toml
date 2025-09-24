@@ -1,0 +1,18 @@
+[package]
+name = "veriphi-core-wasm"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-only"
+description = "WASM bindings for veriphi-core"
+repository = "https://github.com/veriphi-labs/veriphi"
+readme = "../../README.md"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+veriphi-core = { path = "../veriphi-core" }
+wasm-bindgen = { version = "0.2" , features = ["serde-serialize"]}
+js-sys = "0.3.77"
+console_error_panic_hook = "0.1"
+getrandom = { version = "0.3.3", features = ["wasm_js"] }
