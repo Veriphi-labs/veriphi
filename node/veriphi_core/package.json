@@ -1,0 +1,16 @@
+{
+  "name": "@veriphi/veriphi_core",
+  "version": "0.1.0",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "scripts": {
+    "build:native": "npm --prefix ../veriphi-core-node run build",
+    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "test": "npm run build:native && npm run build && node --test dist/tests/**/*.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "@types/node": "^22.7.5"
+  },
+  "license": "AGPL-3.0-or-later"
+}

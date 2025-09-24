@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "veriphi-core",
-    "veriphi-core-py"]
+    "veriphi-core-py",
+    "../node/veriphi-core-node"]
 resolver = "2"

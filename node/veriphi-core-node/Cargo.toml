@@ -1,0 +1,22 @@
+[package]
+name = "veriphi-core-node"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+description = "Node.js bindings for veriphi-core"
+repository = "https://github.com/Veriphi-labs/veriphi"
+readme = "README.md"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# N-API bridge
+napi = { version = "3.2", features = ["napi6"] }
+napi-derive = "3.2"
+
+# Your core crate (adjust the path if needed)
+veriphi-core = { path = "../../rust/veriphi-core" }
+
+[build-dependencies]
+napi-build = "2.2.3"
