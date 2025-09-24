@@ -3,9 +3,36 @@ import * as utils from './utils';
 import { randomBytes } from 'crypto';
 import { decryptAESCTR, decryptAESGCM } from './utils';
 
-import path from "node:path";
+import fs from 'node:fs';
+import path from 'node:path';
 
-const vc = require(path.resolve(__dirname, "../../../veriphi-core-node/index.node"));
+const loadNativeBinding = (): any => {
+    const searchRoots: string[] = [];
+    let currentDir = __dirname;
+    for (let i = 0; i < 6; i += 1) {
+        searchRoots.push(currentDir);
+        const parent = path.dirname(currentDir);
+        if (parent === currentDir) {
+            break;
+        }
+        currentDir = parent;
+    }
+
+    const candidates = searchRoots.flatMap((root) => [
+        path.join(root, 'veriphi-core-node', 'index.node'),
+        path.join(root, 'node_modules', '@veriphi', 'veriphi-core-node', 'index.node')
+    ]);
+
+    for (const candidate of candidates) {
+        if (fs.existsSync(candidate)) {
+            return require(candidate);
+        }
+    }
+
+    throw new Error(`Failed to locate native binding. Candidates checked: ${candidates.join(', ')}`);
+};
+
+const vc = loadNativeBinding();
 
 /**
  * Represents a structured packet containing keys, identity, and mode metadata.

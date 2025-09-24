@@ -3,14 +3,36 @@
   "version": "0.1.0",
   "type": "commonjs",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils.d.ts",
+      "require": "./dist/utils.js",
+      "default": "./dist/utils.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "utils": ["dist/utils.d.ts"],
+      "*": ["dist/index.d.ts"]
+    }
+  },
+  "files": ["dist"],
   "scripts": {
     "build:native": "npm --prefix ../veriphi-core-node run build",
     "build": "rm -rf dist && tsc -p tsconfig.json",
-    "test": "npm run build:native && npm run build && node --test dist/tests/**/*.js"
+    "build:tests": "rm -rf dist-tests && tsc -p tsconfig.test.json",
+    "test": "npm run build:native && npm run build && npm run build:tests && node --test dist-tests/tests/index.test.js"
   },
   "devDependencies": {
-    "typescript": "^5.6.3",
-    "@types/node": "^22.7.5"
+    "@types/node": "^22.7.5",
+    "tslab": "^1.0.22",
+    "typescript": "^5.6.3"
   },
   "license": "AGPL-3.0-or-later"
 }

@@ -3,13 +3,15 @@
     "target": "ES2020",
     "module": "CommonJS",
     "moduleResolution": "Node",
-    "rootDir": ".",
-    "outDir": "dist",
+    "rootDir": "src",            // ← only compile from src
+    "outDir": "dist",            // ← emit flat dist/*
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "declaration": true,         // ← emit dist/*.d.ts for typings
+    "declarationMap": true,
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts"],
-  "exclude": ["dist", "node_modules"]
+  "include": ["src/**/*.ts"],    // ← tests aren’t emitted into dist
+  "exclude": ["dist", "node_modules", "tests"]
 }
