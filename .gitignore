@@ -1,9 +1,9 @@
 # ============================
 # Core Rust / Cargo
 # ============================
-rust/target/
-**/*.rs.bk               
-rust/Cargo.lock        
+**/target/
+**/*.rs.bk
+**/Cargo.lock
 
 # ============================
 # Python Bindings
@@ -22,15 +22,19 @@ dist/
 venv/
 
 # ============================
-# Node / WASM Bindings
+# Node / TypeScript / WASM
 # ============================
-node_modules/
-/dist/
-/build/
-/package-lock.json
-/yarn.lock
-/.npm
-/.pnp
+**/node_modules/
+**/dist/
+**/dist-tests/
+**/build/
+**/pkg/
+**/*.wasm
+**/wasm-pack.log
+**/package-lock.json
+**/yarn.lock
+.npm/
+.pnp/
 .pnp.js
 
 # WASM build artifacts
@@ -44,7 +48,7 @@ wasm-pack.log
 .vscode/
 .idea/
 *.iml
-
+**/.ipynb_checkpoints/
 # ============================
 # OS-specific
 # ============================
