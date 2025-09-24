@@ -1,11 +1,21 @@
 use js_sys::Error as JsError;
 use js_sys::{Array, BigInt, Uint8Array};
 use wasm_bindgen::prelude::*;
+use wasm_bindgen_rayon::init_thread_pool;
+use wasm_bindgen_futures::JsFuture;
+
 
 use veriphi_core::utils;
 use veriphi_core::involute;
 use veriphi_core::encrypt;
 use veriphi_core::decrypt;
+
+#[wasm_bindgen(js_name = initThreads)]
+pub async fn init_threads(threads: usize) -> Result<(), JsValue> {
+    let p = init_thread_pool(threads);
+    JsFuture::from(p).await?;
+    Ok(())
+}
 
 #[wasm_bindgen(start)]
 pub fn _init_panic_hook() {

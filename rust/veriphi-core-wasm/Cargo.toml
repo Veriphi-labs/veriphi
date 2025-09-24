@@ -15,4 +15,6 @@ veriphi-core = { path = "../veriphi-core" }
 wasm-bindgen = { version = "0.2" , features = ["serde-serialize"]}
 js-sys = "0.3.77"
 console_error_panic_hook = "0.1"
+wasm-bindgen-rayon = "1.3"
 getrandom = { version = "0.3.3", features = ["wasm_js"] }
+wasm-bindgen-futures = "0.4"
