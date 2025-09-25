@@ -1,8 +1,8 @@
 [package]
-name = "veriphi-core"
+name = "veriphi-sdk"
 version = "0.1.0"
 edition = "2024"
-description = "Veriphi core algorithms (Rust)"
+description = "Veriphi Rust SDK"
 repository = "https://github.com/Veriphi-labs/veriphi"
 readme = "README.md"
 
@@ -12,12 +12,14 @@ keywords = ["agents", "ai", "security", "rust"]
 categories = ["authentication", "security"]
 
 [lib]
-name = "veriphi_core"
+name = "veriphi_sdk"
 path = "src/lib.rs"
 
 [dependencies]
+veriphi-core = { path = "../veriphi-core" }
 hkdf = "0.12"
 rand = "0.9.1"
+getrandom = "0.3.3"
 rand_chacha = "0.9"
 sha2 = "0.10"
 zeroize="1.8.1"
@@ -29,3 +31,4 @@ pbkdf2 = "0.12"
 aes = "0.8"
 ctr = "0.9"
 aes-gcm = "0.10"
+

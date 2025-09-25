@@ -4,7 +4,7 @@ SHELL := /bin/bash
 .ONESHELL:
 
 # --- Paths (adjust if yours differ) ---
-RUST_WS           := rust/veriphi-core/Cargo.toml
+RUST_WS           := rust/veriphi-sdk/Cargo.toml
 PY_BINDING_TOML   := rust/veriphi-core-py/Cargo.toml
 NODE_NATIVE_DIR   := node/veriphi-core-node
 NODE_TS_DIR       := node/veriphi_core
@@ -40,7 +40,7 @@ clean-wasm:
 	rm -rf $(WASM_TS_DIR)/node_modules $(WASM_TS_DIR)/dist || true
 
 # ---------- BUILD ----------
-build: build-rust, build-python build-node build-wasm build-ts
+build: build-rust build-python build-node build-wasm build-ts
 
 build-rust:
 	@echo "==> Build Rust core (release)"

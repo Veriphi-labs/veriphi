@@ -1,6 +1,7 @@
 use rand::RngCore;
 
-use veriphi_core as vc;
+use veriphi_sdk as vc;
+
 fn rand_bytes(n: usize) -> Vec<u8> {
     let mut v = vec![0u8; n];
     rand::rng().fill_bytes(&mut v);

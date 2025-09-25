@@ -1,70 +1,29 @@
-# veriphi
+# Veriphi
 
 ## Overview
-> _TODO: Add a high-level description of the Veriphi project, core capabilities, and primary use cases._
+Veriphi codes for protecting against agent mis-alignment by enforcing authorisation graphs with distributed encryption of tools. 
 
-## Repository Layout
-- `rust/` – Rust workspace containing the core engine (`veriphi-core`), Python extension crate (`veriphi-core-py`), and WebAssembly build (`veriphi-core-wasm`).
-- `node/` – Node.js bindings: the native N-API addon lives in `veriphi-core-node`, while the TypeScript wrapper and high-level APIs are in `veriphi_core`.
-- `python/` – Python package that exposes the core functionality via the Rust extension module.
-- `notebooks/` – Interactive examples for both the Node and Python stacks.
+Agents equipped with tools, such as executables, passwords or credentials, can 
+ - Leak the tool to an attacked
+ - Use the tool without consent
+ - Use the tool correctly, but out of scope in an undesired context
 
-## Prerequisites
-- [Rust toolchain](https://rustup.rs/) (nightly not required; stable is sufficient)
-- [Node.js 18+](https://nodejs.org/) and npm
-- Python 3.9+ with `pip` (for the bindings and notebooks)
+To prevent this, Veriphi allows for fully decentralised and secure enforcement of workflows.
 
-## Building
-### Rust crates
-```bash
-cd rust
-cargo build --release -p veriphi-core
-```
-This produces the native Rust library that all other bindings wrap. The Python extension and WebAssembly artifacts require their own build tooling (see below).
+Define the conditions and domains that your Agent must obey, including
+ - Which tools are used by which Agent
+ - Which targets are permissible by which Agent
+ - Which tools and targets require consent from an outside party (such as a human)
 
-### Node.js bindings and TypeScript package
-```bash
-cd node/veriphi_core
-npm install
-npm run build:native   # builds the napi addon in ../veriphi-core-node
-npm run build          # compiles TypeScript sources into dist/
-```
-The workspace root (`package.json`) is configured to treat `node/veriphi_core` as a workspace member, so `npm install` at the repo root will also install dependencies.
+To explore simple examples, see out interactive [demo builder](https://www.veriphi.co.uk/demo.html).  For more complex examples, directly call the SDK for implementation, or get in touch here for a [free consultation](hello@veriphilabs.com) (example code coming soon!)
 
-### Python bindings
-The Python wheel is produced via [maturin](https://github.com/PyO3/maturin). Install it once:
-```bash
-pip install maturin
-```
-Then build and install the bindings in editable mode:
-```bash
-maturin develop -m rust/veriphi-core-py/Cargo.toml --release
-```
-This command must be run from the repository root so relative paths resolve correctly.
+The **Veriphi SDK** provides a unified toolkit across multiple environments:
 
-### WebAssembly package
-Install [wasm-pack](https://rustwasm.github.io/wasm-pack/) if it is not already available, then run:
-```bash
-wasm-pack build rust/veriphi-core-wasm --release --target bundler
-```
-The build artifacts are emitted into `rust/veriphi-core-wasm/pkg/` for publishing or direct consumption.
-
-## Testing
-- **Rust** – Run `cargo test` inside `rust/` (or target a crate with `cargo test -p veriphi-core`).
-- **Node.js / TypeScript** – From `node/veriphi_core` execute `npm test`. This compiles the TypeScript sources, builds the native addon, and runs the Node test suite located under `node/veriphi_core/tests/`.
-- **Python** – After running `maturin develop`, invoke `pytest python/veriphi_core/tests`. The suite mirrors the Node tests to validate encryption primitives and packet handling.
-
-## Notebooks
-Interactive walkthroughs are in the `notebooks/` directory:
-- `node_start.ipynb` – Demonstrates using the Node.js APIs.
-- `py_start.ipynb` – Demonstrates the Python bindings.
-
-For the TypeScript notebook, install and enable [tslab](https://github.com/yunabe/tslab):
-```bash
-npm install -g tslab
-tslab install --version=$(node -p "require('tslab/package.json').version")
-```
-Activate the desired virtual environment or kernel before opening the notebooks so they can resolve the freshly built packages.
+- **Rust** — core implementation and high-level SDK
+- **Python** — bindings built via [maturin](https://github.com/PyO3/maturin)
+- **Node.js** — native addon (N-API via [napi-rs](https://napi.rs/)) and a TypeScript wrapper
+- **WebAssembly** — browser/JS bindings compiled with [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/) and [wasm-pack](https://rustwasm.github.io/wasm-pack/)
+- **Notebooks** — runnable examples in Python and Node
 
 ## License
 This project is offered under a **dual license** model:
@@ -83,4 +42,131 @@ covered by patent applications (patent pending).
 - Commercial licenses provide full rights, including coverage for relevant patents.
 
 If you are a company or startup interested in commercial licensing,
-please contact us at hello@veriphilabs.com.
+please contact us at hello@veriphilabs.com.  We will offer **very permissive** commercial terms
+
+## Prerequisites
+
+You’ll need the following installed:
+
+- **Rust toolchain**  
+  - `rustup`, `cargo`  
+  - Nightly toolchain for WASM multithreading:
+    ```bash
+    rustup install nightly
+    rustup target add wasm32-unknown-unknown --toolchain nightly
+    ```
+
+- **Node.js + npm**  
+  - Node.js 20+ recommended  
+  - TypeScript (`tsc`) and Vitest will be installed per-package
+
+- **Python**  
+  - Python 3.10+  
+  - [maturin](https://github.com/PyO3/maturin) for building Rust Python bindings  
+    ```bash
+    pip install maturin pytest
+    ```
+
+- **WASM**  
+  - [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)  
+    ```bash
+    cargo install wasm-pack
+    ```
+
+
+## Repository Layout
+```text
+.
+├── rust/
+│   ├── veriphi-sdk/         # Rust SDK (public API layer, re-exports core)
+│   ├── veriphi-core/        # Low-level cryptographic routines
+│   ├── veriphi-core-py/     # Python bindings (maturin)
+│   └── veriphi-core-wasm/   # WASM crate (wasm-bindgen, wasm-pack)
+│
+├── node/
+│   ├── veriphi-core-node/   # Node native addon (napi-rs)
+│   └── veriphi_core/        # Node TypeScript wrapper (exports unified API)
+│
+├── wasm/
+│   └── veriphi_core/        # WASM TypeScript wrapper (built from wasm-pack output)
+│
+├── python/                  # Python package entry point and tests
+│
+├── notebooks/               # Example notebooks (Python + Node)
+│
+├── Makefile                 # Unified build/test pipeline
+└── ...
+```
+## Building
+
+The repository uses a **unified Makefile** in the root to orchestrate builds and tests.
+
+### Clean builds
+```bash
+make clean
+
+# Build everything
+
+make build
+
+# Run all tests
+
+make test
+
+# Full pipeline (clean → build → test)
+
+make all
+
+# CI pipeline
+
+make ci
+```
+
+## Makefile Targets
+
+### Cleaning
+	•	make clean-rust → remove Rust build artifacts
+	•	make clean-python → remove Python caches & dist
+	•	make clean-node → remove Node build artifacts
+	•	make clean-wasm → remove WASM build artifacts
+	•	make clean → run all of the above
+
+### Building
+	•	make build-rust → build Rust SDK (cargo build --release)
+	•	make build-python → build Python bindings (maturin develop)
+	•	make build-node → build Node native addon (NAPI + TS)
+	•	make build-ts → build Node + WASM TypeScript packages
+	•	make build-wasm → build WASM crate via wasm-pack
+	•	make build → build everything
+
+### Testing
+	•	make test-rust → run Rust unit tests
+	•	make test-python → run Python tests (pytest)
+	•	make test-node → run Node tests (vitest)
+	•	make test-wasm → run WASM tests (vitest)
+	•	make test → run all tests
+
+## Notebooks
+Interactive walkthroughs are in the `notebooks/` directory:
+- `node_start.ipynb` – Demonstrates using the Node.js APIs.
+- `py_start.ipynb` – Demonstrates the Python bindings.
+
+For the TypeScript notebook, install and enable [tslab](https://github.com/yunabe/tslab):
+```bash
+npm install -g tslab
+tslab install --version=$(node -p "require('tslab/package.json').version")
+```
+Activate the desired virtual environment or kernel before opening the notebooks so they can resolve the freshly built packages.
+
+## Notes
+### WASM
+	•	Uses nightly Rust for multithreading.
+	•	Ensure the wasm32-unknown-unknown target is installed:
+
+### Python
+	•	The bindings are in rust/veriphi-core-py/ but installed into your active Python environment via maturin develop.
+
+### Notebooks
+	•	Python + Node usage examples live in notebooks/.
+
+
