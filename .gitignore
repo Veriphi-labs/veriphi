@@ -30,6 +30,7 @@ venv/
 **/build/
 **/pkg/
 **/*.wasm
+**/*.node
 **/wasm-pack.log
 **/package-lock.json
 **/yarn.lock
