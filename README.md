@@ -54,6 +54,7 @@ You’ll need the following installed:
     ```bash
     rustup install nightly
     rustup target add wasm32-unknown-unknown --toolchain nightly
+    rustup default stable
     ```
 
 - **Node.js + npm**  
