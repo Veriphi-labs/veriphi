@@ -1,9 +1,6 @@
 use rand::RngCore;
 
 use veriphi_core as vc;
-use vc::Error;
-type TestResult<T = ()> = std::result::Result<T, Error>;
-
 fn rand_bytes(n: usize) -> Vec<u8> {
     let mut v = vec![0u8; n];
     rand::rng().fill_bytes(&mut v);
@@ -181,8 +178,7 @@ fn two_way_decryption_e_style() {
     let packets = vc::distribute_data(&public_data, "E", 2).unwrap();
     let auth_packet = vc::encrypt_node(&packets[0], "authoriser").unwrap();
     let agent_packet = vc::encrypt_node(&packets[1], "agent").unwrap();
-
-    let decrypted = vc::decrypt_node(&private_data, 1.0, false, &[auth_packet, agent_packet]).unwrap();
+    let decrypted = vc::decrypt_node(&private_data, 1.0, true, &[auth_packet, agent_packet]).unwrap();
     assert_eq!(decrypted, test_data);
 }
 
@@ -195,7 +191,6 @@ fn two_way_decryption_k_style() {
     let packets = vc::distribute_data(&public_data, "K", 2).unwrap();
     let auth_packet = vc::encrypt_node(&packets[0], "authoriser").unwrap();
     let agent_packet = vc::encrypt_node(&packets[1], "agent").unwrap();
-
     let decrypted = vc::decrypt_node(&private_data, 1.0, true, &[auth_packet, agent_packet]).unwrap();
     assert_eq!(decrypted, test_data);
 }
@@ -211,7 +206,7 @@ fn three_way_decryption_e_style() {
     let agent_packet  = vc::encrypt_node(&packets[1], "agent").unwrap();
     let target_packet = vc::encrypt_node(&packets[2], "target").unwrap();
 
-    let decrypted = vc::decrypt_node(&private_data, 1.0, false, &[auth_packet, agent_packet, target_packet]).unwrap();
+    let decrypted = vc::decrypt_node(&private_data, 1.0, true, &[auth_packet, agent_packet, target_packet]).unwrap();
     assert_eq!(decrypted, test_data);
 }
 

@@ -762,6 +762,7 @@ pub fn decrypt_node(
     let recovered = dec.recover_packets(&collected)?;
     let streams = dec.reconstruct_data(&recovered)?;
     let mode = &collected[0].mode;
+    println!("Mode: {}\n", mode);
     let recombined = dec.reassemble_data(&streams, mode)?;
 
     let (recov, _) = dec.obfuscate_data(&recombined, priv_key, lo, hi, test_value)?;
@@ -772,4 +773,50 @@ pub fn decrypt_node(
     } else {
         Ok(recov)
     }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn roundtrip_e2() {
+        let data: Vec<u8> = (0..100).collect();
+        let mode = "E2";
+        let streams = stream_data(mode, &data).unwrap();
+        let rec = recombine_data(mode, &streams).unwrap();
+        assert_eq!(rec, data); // exact (no padding needed)
+    }
+
+    #[test]
+    fn roundtrip_e3_with_padding() {
+        let data: Vec<u8> = (0..101).collect(); // not divisible by 3
+        let mode = "E3";
+        let streams = stream_data(mode, &data).unwrap();
+        // recombined returns padded length; trim to original to compare
+        let rec = recombine_data(mode, &streams).unwrap();
+        assert_eq!(&rec[..data.len()], &data[..]);
+        assert_eq!(rec.len() % 3, 0);
+    }
+
+    #[test]
+    fn roundtrip_k2() {
+        let data: Vec<u8> = (0..ninety_six()).map(|i| i as u8).collect();
+        let mode = "K2";
+        let streams = stream_data(mode, &data).unwrap();
+        let rec = recombine_data(mode, &streams).unwrap();
+        assert_eq!(rec, data); // exact (no padding needed)
+    }
+
+    #[test]
+    fn roundtrip_k3() {
+        let data: Vec<u8> = (0..ninety_six()).map(|i| i as u8).collect();
+        let mode = "K3";
+        let streams = stream_data(mode, &data).unwrap();
+        let rec = recombine_data(mode, &streams).unwrap();
+        assert_eq!(rec, data);
+    }
+
+    fn ninety_six() -> usize { 96 }
 }
