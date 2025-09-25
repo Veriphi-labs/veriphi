@@ -1,4 +1,5 @@
 import Crypto.Protocol.KDF, Crypto.Cipher.AES
+from Crypto.Hash import SHA256
 import numpy as np
 from numpy.typing import NDArray
 import os
@@ -9,7 +10,7 @@ import os
 
 def derive_encryption_key(private_key: bytes, count: int = 250_000, context: bytes = b"setup_encryption") -> bytes:
     """Derive a consistent encryption key from private key."""
-    return Crypto.Protocol.KDF.PBKDF2(private_key, context, count=count, dkLen=32)
+    return Crypto.Protocol.KDF.PBKDF2(private_key, context, count=count, dkLen=32, hmac_hash_module=SHA256 )
 
 def encrypt_AES_GCM(private_key: bytes, plaintext: bytes, num_iter: int = 250_000):
     encrypt_key = derive_encryption_key(private_key, count = num_iter)

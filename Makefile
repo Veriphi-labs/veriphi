@@ -4,7 +4,7 @@ SHELL := /bin/bash
 .ONESHELL:
 
 # --- Paths (adjust if yours differ) ---
-RUST_WS           := rust/Cargo.toml
+RUST_WS           := rust/veriphi-core/Cargo.toml
 PY_BINDING_TOML   := rust/veriphi-core-py/Cargo.toml
 NODE_NATIVE_DIR   := node/veriphi-core-node
 NODE_TS_DIR       := node/veriphi_core
@@ -40,7 +40,11 @@ clean-wasm:
 	rm -rf $(WASM_TS_DIR)/node_modules $(WASM_TS_DIR)/dist || true
 
 # ---------- BUILD ----------
-build: build-python build-node build-wasm build-ts
+build: build-rust, build-python build-node build-wasm build-ts
+
+build-rust:
+	@echo "==> Build Rust core (release)"
+	cargo build --release --manifest-path $(RUST_WS)
 
 build-python:
 	@echo "==> Build Python bindings with maturin (release, develop)"
@@ -63,7 +67,11 @@ build-wasm:
 	wasm-pack build --release --target web --out-dir pkg $(WASM_RS_DIR)
 
 # ---------- TEST ----------
-test: test-python test-node test-wasm
+test: test-rust test-python test-node test-wasm
+
+test-rust:
+	@echo "==> Test Rust workspace"
+	cargo test --manifest-path $(RUST_WS)
 
 test-python:
 	@echo "==> Test Python (pytest)"
