@@ -59,6 +59,7 @@ You’ll need the following installed, depending on which interfaces you want to
 
 - **Node.js + npm**  
   - Node.js 20+ recommended (install from [here](https://nodejs.org/en/download))
+      - This is the bit most likely to cause issues down the line.  Chatbots are your friend.
   - Install napi for rust bindings
     ```bash
     npm install -g @napi-rs/cli
