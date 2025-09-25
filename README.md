@@ -66,6 +66,7 @@ You’ll need the following installed:
     ```bash
     python -m venv .venv
     ```
+  - Activate the virtual environment
   - [maturin](https://github.com/PyO3/maturin) for building Rust Python bindings  
     ```bash
     pip install maturin pytest
