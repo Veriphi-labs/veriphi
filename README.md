@@ -46,7 +46,7 @@ please contact us at hello@veriphilabs.com.  We will offer **very permissive** c
 
 ## Prerequisites
 
-You’ll need the following installed:
+You’ll need the following installed, depending on which interfaces you want to use:
 
 - **Rust toolchain**  
   - `rustup`, `cargo`, (install from [here](https://www.rust-lang.org/tools/install))
@@ -59,6 +59,10 @@ You’ll need the following installed:
 
 - **Node.js + npm**  
   - Node.js 20+ recommended (install from [here](https://nodejs.org/en/download))
+  - Install napi for rust bindings
+    ```bash
+    npm install -g @napi-rs/cli
+    ```
   - TypeScript (`tsc`) and Vitest will be installed per-package
 
 - **Python**  
@@ -107,6 +111,8 @@ You’ll need the following installed:
 
 The repository uses a **unified Makefile** in the root to orchestrate builds and tests.
 
+To build everything, use general commands below...
+
 ### Clean builds
 ```bash
 make clean
@@ -129,6 +135,8 @@ make ci
 ```
 
 ## Makefile Targets
+
+For building specific interfaces, follow the relevant instructions below
 
 ### Cleaning
 	•	make clean-rust → remove Rust build artifacts
