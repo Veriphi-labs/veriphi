@@ -30,14 +30,15 @@ clean-python:
 
 clean-node:
 	@echo "==> Clean Node artifacts"
-	rm -rf $(NODE_NATIVE_DIR)/target $(NODE_NATIVE_DIR)/index.node || true
-	rm -rf $(NODE_TS_DIR)/node_modules $(NODE_TS_DIR)/dist || true
+	rm -rf ./node_modules  package-lock.json || true
+	rm -rf $(NODE_NATIVE_DIR)/target $(NODE_NATIVE_DIR)/index.node  || true
+	rm -rf $(NODE_NATIVE_DIR)/package-lock.json $(NODE_NATIVE_DIR)/node_modules $(NODE_NATIVE_DIR)/cargo.lock 
+	rm -rf $(NODE_TS_DIR)/node_modules $(NODE_TS_DIR)/dist $(NODE_TS_DIR)/package-lock.json || true
 
 clean-wasm:
 	@echo "==> Clean WASM artifacts"
 	rm -rf $(WASM_RS_DIR)/pkg || true
-	# wasm-pack uses the Rust target dir; cargo clean already clears it
-	rm -rf $(WASM_TS_DIR)/node_modules $(WASM_TS_DIR)/dist || true
+	rm -rf $(WASM_TS_DIR)/node_modules $(WASM_TS_DIR)/dist $(WASM_TS_DIR)/package-lock.json || true
 
 # ---------- BUILD ----------
 build: build-rust build-python build-node build-wasm build-ts
@@ -52,14 +53,15 @@ build-python:
 
 build-node:
 	@echo "==> Build Node native addon (napi-rs)"
-	npm --prefix $(NODE_NATIVE_DIR) ci
+	npm --prefix $(NODE_NATIVE_DIR) install
 	npm --prefix $(NODE_NATIVE_DIR) run build
+	npm install
 
 build-ts:
 	@echo "==> Build TS packages"
-	npm --prefix $(NODE_TS_DIR) ci
+	npm --prefix $(NODE_TS_DIR) install
 	npm --prefix $(NODE_TS_DIR) run build
-	npm --prefix $(WASM_TS_DIR) ci
+	npm --prefix $(WASM_TS_DIR) install
 	npm --prefix $(WASM_TS_DIR) run build
 
 build-wasm:
