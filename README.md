@@ -62,6 +62,10 @@ You’ll need the following installed:
 
 - **Python**  
   - Python 3.10+  (install python from [here](https://www.python.org/downloads/))
+  - Create a new virtual environment from the repo-root
+    ```bash
+    python -m venv .venv
+    ```
   - [maturin](https://github.com/PyO3/maturin) for building Rust Python bindings  
     ```bash
     pip install maturin pytest
