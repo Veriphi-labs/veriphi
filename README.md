@@ -77,7 +77,7 @@ You’ll need the following installed:
     ```bash
     cargo install wasm-pack
     ```
-
+- **You made need to install `make` to be able to use the `Makefile`**
 
 ## Repository Layout
 ```text
