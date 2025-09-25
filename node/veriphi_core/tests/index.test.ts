@@ -154,8 +154,6 @@ describe('Setup Node Tests', () => {
         assert.notDeepEqual(obfuscatedPacket, testData)
         const sortedObf = Array.from(obfuscatedPacket).sort()
         const sortedOriginal = Array.from(testData).sort()
-        console.log(sortedObf)
-        console.log(sortedOriginal)
         assert.deepEqual(sortedObf, sortedOriginal)
 
         // Recovered packet should be exactly the same as the original
