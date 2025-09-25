@@ -73,7 +73,7 @@ You’ll need the following installed:
     pip install maturin pytest
     ```
 
-- **WASM**  
+- **WASM**  (not yet supported for windows)
   - [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)  
     ```bash
     cargo install wasm-pack
