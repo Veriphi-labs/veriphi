@@ -49,7 +49,7 @@ please contact us at hello@veriphilabs.com.  We will offer **very permissive** c
 You’ll need the following installed:
 
 - **Rust toolchain**  
-  - `rustup`, `cargo`  
+  - `rustup`, `cargo`, (install from [here](https://www.rust-lang.org/tools/install))
   - Nightly toolchain for WASM multithreading:
     ```bash
     rustup install nightly
@@ -57,11 +57,11 @@ You’ll need the following installed:
     ```
 
 - **Node.js + npm**  
-  - Node.js 20+ recommended  
+  - Node.js 20+ recommended (install from [here](https://nodejs.org/en/download))
   - TypeScript (`tsc`) and Vitest will be installed per-package
 
 - **Python**  
-  - Python 3.10+  
+  - Python 3.10+  (install python from [here](https://www.python.org/downloads/))
   - [maturin](https://github.com/PyO3/maturin) for building Rust Python bindings  
     ```bash
     pip install maturin pytest
