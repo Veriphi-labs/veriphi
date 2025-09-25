@@ -111,7 +111,7 @@ You’ll need the following installed, depending on which interfaces you want to
 
 The repository uses a **unified Makefile** in the root to orchestrate builds and tests.
 
-To build everything, use general commands below...
+To build everything, use general commands below.  Note that antiviruses may interfere with installation of some packages.
 
 ### Clean builds
 ```bash
