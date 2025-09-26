@@ -109,3 +109,40 @@ def rKip_data(num_streams: int, data: NDArray[np.uint8]):
     stream_length = data.shape[1]
     recombined_data = np.ascontiguousarray(np.reshape(data, (num_streams * stream_length,), order = 'F'))
     return recombined_data
+
+########################################
+# Helper functions for data sanitation #
+########################################
+
+def calculate_padding_length(current_len: int) -> int:
+    """
+    Calculate how many bytes need to be appended so that the total length
+    is both even and divisible by 3.
+    
+    Args:
+        current_len (int): Current length of the packet in bytes.
+    
+    Returns:
+        int: Number of padding bytes required.
+    """
+    # Start with no padding and increment until condition is met
+    padding = 0
+    while True:
+        new_len = current_len + padding
+        if new_len % 2 == 0 and new_len % 3 == 0:
+            return padding
+        padding += 1
+
+def generate_padding_bytes(padding_len: int) -> NDArray[np.uint8]:
+    """
+    Generate a numpy array of cryptographically random bytes.
+    
+    Args:
+        padding_len (int): Number of random bytes to generate.
+    
+    Returns:
+        NDArray[np.uint8]: Array of random padding bytes.
+    """
+    if padding_len == 0:
+        return np.array([], dtype=np.uint8)
+    return np.frombuffer(os.urandom(padding_len), dtype=np.uint8)

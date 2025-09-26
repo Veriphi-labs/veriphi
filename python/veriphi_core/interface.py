@@ -149,7 +149,7 @@ class SetupNode(Utils):
         low_value, high_value = vc.prep_condition(low_bound, high_bound, key_array)
         return vc.cond_hash_branch(low_value, high_value, test_value, key_array)
 
-    def obfuscate_data(self,packet: NDArray[np.uint8], private_key: bytes, low_bound:int, high_bound: int, test_value:np.float32) -> tuple[NDArray[np.uint8], int]:
+    def obfuscate_data(self,packet: NDArray[np.uint8], private_key: bytes, low_bound:int, high_bound: int, test_value:np.float32) -> tuple[NDArray[np.uint8], int, int]:
         """
         Obfuscate data packet based on conditional cryptographic parameters.
         
@@ -170,9 +170,13 @@ class SetupNode(Utils):
                 - chunk_size (int): The chunk size used in obfuscation
         """
         salt_array   = np.frombuffer(private_key, dtype=np.uint8)
+        padding_len = utils.calculate_padding_length(len(packet))
+        if padding_len > 0:
+            padding_bytes = utils.generate_padding_bytes(padding_len)
+            packet = np.concatenate((packet, padding_bytes))
         chunk_size = vc.get_chunk_size(packet)
         inv_packet = vc.cond_involute_packet(packet, salt_array, chunk_size, low_bound, high_bound, test_value)
-        return np.frombuffer(inv_packet,dtype=np.uint8), chunk_size
+        return np.frombuffer(inv_packet,dtype=np.uint8), chunk_size, padding_len
 
     def encrypt_data(self, data: bytes, private_key: bytes, num_iter = 250_000) -> tuple[bytes, bytes]:
         """
@@ -779,9 +783,9 @@ def setup_node(data: NDArray[np.uint8],cond_low: np.float32, cond_high: np.float
         nonce = b""
     test_val = (cond_low + cond_high)/2
     low_val, high_val = setup_node.implement_conditions(cond_low, cond_high, private_key)
-    obf_data,_ = setup_node.obfuscate_data(encrypted, private_key, low_val, high_val, test_val)
+    obf_data,_, padding_len = setup_node.obfuscate_data(encrypted, private_key, low_val, high_val, test_val)
     public_data = {"data":obf_data, "key": public_key}
-    private_data= {"key": private_key, "low_val":low_val, "high_val": high_val, "nonce": nonce}
+    private_data= {"key": private_key, "low_val":low_val, "high_val": high_val, "nonce": nonce, "padding":padding_len}
     return public_data, private_data
 
 def distribute_data(public_data:dict, stream_mode:str, num_parties:int) -> list[bytes]:
@@ -868,6 +872,8 @@ def decrypt_node(private_data:dict, test_value: np.float32, encrypt: bool, *args
                                            private_data["low_val"], 
                                            private_data["high_val"], 
                                            test_value)
+    if private_data["padding"] > 0:
+        recovered = recovered[:-private_data["padding"]]
     if encrypt:
         return veriphier.decrypt_data(recovered.tobytes(), private_data["nonce"], private_data["key"])
     return recovered

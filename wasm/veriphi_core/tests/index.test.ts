@@ -156,19 +156,22 @@ describe('Setup Node Tests', () => {
     const privateKey = nodeA.genPrivateKey('masterPrivateKey', masterSeed);
 
     const [lowValue, highValue] = nodeA.implementConditions(-1.0, 1.0, privateKey);
-    const [obfuscatedPacket] = nodeA.obfuscateData(
+    let [obfuscatedPacket,_,padding] = nodeA.obfuscateData(
       testData,
       privateKey,
       BigInt(lowValue),
       BigInt(highValue),
       0.0
     );
+    obfuscatedPacket = padding > 0
+            ? obfuscatedPacket.subarray(0, obfuscatedPacket.length - padding)
+            : obfuscatedPacket;
 
     expect(obfuscatedPacket).not.toEqual(testData);
   });
 
   it('involuteFailedCondition', () => {
-    const testData = fillRandom(new Uint8Array(100));
+    const testData = fillRandom(new Uint8Array(108));
 
     const nodeA = new ic.SetupNode('A');
     const masterSeed = randomBytes(32);
@@ -210,6 +213,29 @@ describe('Setup Node Tests', () => {
     );
     expect(recoveredPacketFalse).not.toEqual(testData);
   });
+
+  it('involute_condition_padding',() => {
+    const testData = fillRandom(new Uint8Array(103)); // not multiple of 2
+    const nodeA = new ic.SetupNode('A')
+
+    const masterSeed = randomBytes(32)
+    const privateKey = nodeA.genPrivateKey('masterPrivateKey', Buffer.from(masterSeed))
+    const [lowValue, highValue] = nodeA.implementConditions(-1.0, 1.0, privateKey)
+    const [obfuscatedPacket,_,padding] = nodeA.obfuscateData(Buffer.from(testData), privateKey, BigInt(lowValue), BigInt(highValue), 0.0)
+    
+    expect(obfuscatedPacket).not.toEqual(testData)
+    expect(obfuscatedPacket.length % 2).toEqual(0)
+    
+    const [recovPacketRaw, _chunkSize2, _padding2] = nodeA.obfuscateData(obfuscatedPacket,privateKey,BigInt(lowValue),BigInt(highValue),0.5);
+
+        // strip padding if needed
+    const recovPacket = padding > 0
+        ? recovPacketRaw.subarray(0, recovPacketRaw.length - padding)
+        : recovPacketRaw;
+
+    // check equality with original
+    expect(recovPacket).toEqual(testData);
+  })
 });
 
 describe('Full Process Tests', () => {

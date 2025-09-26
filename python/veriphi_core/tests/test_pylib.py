@@ -135,30 +135,48 @@ def test_involute_condition_true():
     master_seed = os.urandom(32)
     private_key = node_a.gen_private_key("master_private_key",np.frombuffer(master_seed,dtype=np.uint8))
     low_value, high_value = node_a.implement_conditions(-1.0, 1.0, private_key)
-    obv_packet,_ = node_a.obfuscate_data(test_data, private_key, low_value, high_value, 0.0)
-
+    obv_packet,_, padding = node_a.obfuscate_data(test_data, private_key, low_value, high_value, 0.0)
+    obv_packet = obv_packet[:-padding] if padding > 0 else obv_packet
+    assert len(obv_packet) == len(test_data)
     assert not np.array_equal(obv_packet, test_data)
 
 def test_involute_failed_condition():
     rng = np.random.default_rng()
-    test_data = rng.integers(0, 256, size = (100,), dtype=np.uint8)
+    test_data = rng.integers(0, 256, size = (108,), dtype=np.uint8)
     node_a = interface.SetupNode("A")
     master_seed = os.urandom(32)
     private_key = node_a.gen_private_key("master_private_key",np.frombuffer(master_seed,dtype=np.uint8))
     low_value, high_value = node_a.implement_conditions(-1.0, 1.0, private_key)
-    obv_packet,_ = node_a.obfuscate_data(test_data, private_key, low_value, high_value, 0.0)
-    
+    obv_packet,_, padding = node_a.obfuscate_data(test_data, private_key, low_value, high_value, 0.0)
     # Obfuscated packet should not resemble original, but should have the same values
+
     assert not np.array_equal(obv_packet, test_data)
     assert np.array_equal(np.sort(obv_packet), np.sort(test_data))
     
     # Recovered packet should be exactly the same as the original
-    recov_packet,_ = node_a.obfuscate_data(obv_packet,private_key, low_value, high_value , 0.5)
+    recov_packet,_,_ = node_a.obfuscate_data(obv_packet,private_key, low_value, high_value , 0.5)
     assert np.array_equal(recov_packet,test_data)
 
     # Attempt to recover the original with a failed condition should lead to a different array
-    recov_packet_false,_ = node_a.obfuscate_data(obv_packet, private_key, low_value, high_value, 10.0)
+    recov_packet_false,_,_ = node_a.obfuscate_data(obv_packet, private_key, low_value, high_value, 10.0)
     assert not np.array_equal(recov_packet_false,test_data)
+
+def test_involute_condition_padding():
+    rng = np.random.default_rng()
+    test_data = rng.integers(0, 256, size = (103,), dtype=np.uint8)
+    node_a = interface.SetupNode("A")
+    master_seed = os.urandom(32)
+    private_key = node_a.gen_private_key("master_private_key",np.frombuffer(master_seed,dtype=np.uint8))
+    low_value, high_value = node_a.implement_conditions(-1.0, 1.0, private_key)
+    obv_packet,_, padding_len = node_a.obfuscate_data(test_data, private_key, low_value, high_value, 0.0)
+
+    assert not np.array_equal(obv_packet, test_data)
+    assert len(obv_packet) % 2 == 0
+
+    recov_packet,_, _ = node_a.obfuscate_data(obv_packet, private_key, low_value, high_value , 0.5)
+    if padding_len > 0:
+        recov_packet = recov_packet[:-padding_len]
+    assert np.array_equal(recov_packet,test_data)
 
 #####################
 # Test full process #

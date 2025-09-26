@@ -135,20 +135,22 @@ describe('Setup Node Tests', () => {
         const masterSeed = crypto.randomBytes(32)
         const privateKey = nodeA.genPrivateKey('masterPrivateKey', Buffer.from(masterSeed))
         const [lowValue, highValue] = nodeA.implementConditions(-1.0, 1.0, privateKey)
-        const [obfuscatedPacket] = nodeA.obfuscateData(Buffer.from(testData), privateKey, lowValue, highValue, 0.0)
-
+        let [obfuscatedPacket,_,padding] = nodeA.obfuscateData(Buffer.from(testData), privateKey, lowValue, highValue, 0.0)
+        obfuscatedPacket = padding > 0
+            ? obfuscatedPacket.subarray(0, obfuscatedPacket.length - padding)
+            : obfuscatedPacket;
         assert.notEqual(obfuscatedPacket, testData)
     })
 
     test('involuteFailedCondition', () => {
-        const testData = new Uint8Array(100)
+        const testData = new Uint8Array(108)
         crypto.randomFillSync(testData)
 
         const nodeA = new ic.SetupNode('A')
         const masterSeed = crypto.randomBytes(32)
         const privateKey = nodeA.genPrivateKey('masterPrivateKey', Buffer.from(masterSeed))
         const [lowValue, highValue] = nodeA.implementConditions(-1.0, 1.0, privateKey)
-        const [obfuscatedPacket] = nodeA.obfuscateData(Buffer.from(testData), privateKey, lowValue, highValue, 0.0)
+        const [obfuscatedPacket,_,packet] = nodeA.obfuscateData(Buffer.from(testData), privateKey, lowValue, highValue, 0.0)
 
         // Obfuscated packet should not resemble original, but should have the same values
         assert.notDeepEqual(obfuscatedPacket, testData)
@@ -164,6 +166,29 @@ describe('Setup Node Tests', () => {
         // Attempt to recover the original with a failed condition should lead to a different array
         const [recoveredPacketFalse] = nodeA.obfuscateData(obfuscatedPacket, privateKey, lowValue, highValue, 10.0)
         assert.notDeepEqual(recoveredPacketFalse, testData)
+    })
+
+    test('involute_condition_padding',() => {
+        const testData = new Uint8Array(103)
+        crypto.randomFillSync(testData)
+        const nodeA = new ic.SetupNode('A')
+
+        const masterSeed = crypto.randomBytes(32)
+        const privateKey = nodeA.genPrivateKey('masterPrivateKey', Buffer.from(masterSeed))
+        const [lowValue, highValue] = nodeA.implementConditions(-1.0, 1.0, privateKey)
+        const [obfuscatedPacket,_,padding] = nodeA.obfuscateData(Buffer.from(testData), privateKey, lowValue, highValue, 0.0)
+        
+        assert.notDeepEqual(obfuscatedPacket, testData)
+        assert.equal(obfuscatedPacket.length % 2, 0);
+        const [recovPacketRaw, _chunkSize2, _padding2] = nodeA.obfuscateData(obfuscatedPacket,privateKey,lowValue,highValue,0.5);
+
+            // strip padding if needed
+        const recovPacket = padding > 0
+            ? recovPacketRaw.subarray(0, recovPacketRaw.length - padding)
+            : recovPacketRaw;
+
+        // check equality with original
+        assert.deepEqual(Array.from(recovPacket),Array.from(testData));
     })
 })
 

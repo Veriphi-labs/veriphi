@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import * as utils from './utils';
 import { randomBytes } from 'crypto';
-import { decryptAESCTR, decryptAESGCM } from './utils';
+import { decryptAESCTR, decryptAESGCM, calculatePaddingLength, generatePaddingBytes  } from './utils';
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -175,10 +175,15 @@ export class SetupNode extends Utils {
         lowBound: number,
         highBound: number,
         testValue: number
-    ): [Buffer, number] {
+    ): [Buffer, number, number] {
+        const paddingLen = calculatePaddingLength(packet.length);
+        if (paddingLen > 0) {
+            const padding = generatePaddingBytes(paddingLen);
+            packet = Buffer.concat([packet, padding]);
+        }
         const chunkSize = vc.getChunkSize(packet);
         const invPacket = vc.condInvolutePacket(packet, privateKey, chunkSize, lowBound, highBound, testValue);
-        return [invPacket, chunkSize];
+        return [invPacket, chunkSize, paddingLen];
     }
 
     /**
@@ -731,10 +736,10 @@ export function setupNode(
 
     const testVal = (condLow + condHigh) / 2;
     const [lowVal, highVal] = setupNode.implementConditions(condLow, condHigh, privateKey);
-    const [obfData] = setupNode.obfuscateData(encrypted, privateKey, lowVal, highVal, testVal);
+    const [obfData, _, padding] = setupNode.obfuscateData(encrypted, privateKey, lowVal, highVal, testVal);
 
     const publicData: Record<string, any> = { data: obfData, key: publicKey };
-    const privateData: Record<string, any> = { key: privateKey, low_val: lowVal, high_val: highVal , nonce: nonce};
+    const privateData: Record<string, any> = { key: privateKey, low_val: lowVal, high_val: highVal , nonce: nonce, padding: padding};
 
     return [publicData, privateData];
 }
@@ -820,12 +825,19 @@ export function decryptNode(
         privateData.high_val,
         testValue
     );
+
+        // Remove padding if any
+    const paddingLen = privateData.padding;
+    let finalData = recovered;
+    if (paddingLen > 0) {
+        finalData = recovered.slice(0, recovered.length - paddingLen);
+    }
     if (encrypt) {
         return veriphier.decryptData(
-            recovered,
+            finalData,
             privateData.nonce,
             privateData.key
         );
     }
-    return recovered;
+    return finalData;
 }

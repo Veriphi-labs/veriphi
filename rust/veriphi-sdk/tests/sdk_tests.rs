@@ -131,16 +131,20 @@ fn involute_condition_true() {
     let private_key = node_a.gen_private_key("master_private_key", &master_seed).unwrap();
     let (low_value, high_value) = node_a.implement_conditions(-1.0, 1.0, &private_key).unwrap();
 
-    let (obfuscated, _chunk) = node_a
+    let (mut obfuscated, _chunk, padding) = node_a
         .obfuscate_data(&test_data, &private_key, low_value, high_value, 0.0)
         .unwrap();
+    if padding > 0 {
+        obfuscated.truncate(obfuscated.len() - padding);
+    }
 
+    assert_eq!(obfuscated.len(), test_data.len());
     assert_ne!(obfuscated, test_data);
 }
 
 #[test]
 fn involute_failed_condition() {
-    let mut test_data = vec![0u8; 100];
+    let mut test_data = vec![0u8; 108];
     rand::rng().fill_bytes(&mut test_data);
 
     let node_a = vc::SetupNode::new("A");
@@ -148,7 +152,7 @@ fn involute_failed_condition() {
     let private_key = node_a.gen_private_key("master_private_key", &master_seed).unwrap();
     let (low_value, high_value) = node_a.implement_conditions(-1.0, 1.0, &private_key).unwrap();
 
-    let (obfuscated, _chunk) = node_a
+    let (obfuscated, _chunk, _padding) = node_a
         .obfuscate_data(&test_data, &private_key, low_value, high_value, 0.0)
         .unwrap();
 
@@ -156,14 +160,43 @@ fn involute_failed_condition() {
     let mut a = obfuscated.clone(); a.sort_unstable();
     let mut b = test_data.clone();  b.sort_unstable();
     assert_eq!(a, b);
-    let (recovered, _c2) = node_a
+    let (recovered, _c2, _padding) = node_a
         .obfuscate_data(&obfuscated, &private_key, low_value, high_value, 0.5)
         .unwrap();
     assert_eq!(recovered, test_data);
-    let (recovered_false, _c3) = node_a
+    let (recovered_false, _c3, _padding) = node_a
         .obfuscate_data(&obfuscated, &private_key, low_value, high_value, 10.0)
         .unwrap();
     assert_ne!(recovered_false, test_data);
+}
+
+#[test]
+fn involute_condition_padding() {
+    let mut test_data = vec![0u8; 103];
+    rand::rng().fill_bytes(&mut test_data);
+    let node_a = vc::SetupNode::new("A");
+    let master_seed = rand_bytes(32);
+    let private_key = node_a.gen_private_key("master_private_key", &master_seed).unwrap();
+    let (low_value, high_value) = node_a.implement_conditions(-1.0, 1.0, &private_key).unwrap();
+    let (obfuscated, _chunk, padding) = node_a
+        .obfuscate_data(&test_data, &private_key, low_value, high_value, 0.0)
+        .unwrap();
+    assert!(padding > 0);
+    assert_ne!(obfuscated, test_data);
+    let mut test_trunc = obfuscated.clone();
+    if padding > 0 {
+        test_trunc.truncate(test_trunc.len() - padding);
+    }
+    assert_ne!(test_trunc, test_data);
+    assert_eq!(obfuscated.len() % 2, 0);
+
+    let (mut recovered, _, _padding) = node_a
+        .obfuscate_data(&obfuscated, &private_key, low_value, high_value, 0.0)
+        .unwrap();
+    if padding > 0 {
+        recovered.truncate(recovered.len() - padding);
+    }
+    assert_eq!(recovered, test_data);
 }
 
 //////////////////////////

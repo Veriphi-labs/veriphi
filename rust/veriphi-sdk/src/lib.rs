@@ -302,6 +302,60 @@ fn read_u64_le(buf: &[u8], off: &mut usize) -> u64 {
     u64::from_le_bytes(a)
 }
 
+///////////////////////
+// Padding utils //////
+///////////////////////
+
+#[inline]
+pub fn calculate_padding_len(current_len: usize) -> usize {
+    (6 - (current_len % 6)) % 6
+}
+
+/// Generate `len` cryptographically secure random bytes using the OS RNG.
+#[inline]
+pub fn generate_padding_bytes(len: usize) -> Vec<u8> {
+    if len == 0 {
+        return Vec::new();
+    }
+    let mut buf = vec![0u8; len];
+    rand::rng().fill_bytes(&mut buf);
+    buf
+}
+
+/// Return a new Vec with padding appended (if needed), along with the padding length.
+/// Also returns the padding bytes in case you want to persist them alongside the packet.
+#[inline]
+pub fn apply_padding(packet: &[u8]) -> (Vec<u8>, usize, Vec<u8>) {
+    let pad_len = calculate_padding_len(packet.len());
+    if pad_len == 0 {
+        // No copy when possible: clone once to return owned Vec
+        return (packet.to_vec(), 0, Vec::new());
+    }
+    let padding = generate_padding_bytes(pad_len);
+
+    let mut out = Vec::with_capacity(packet.len() + pad_len);
+    out.extend_from_slice(packet);
+    out.extend_from_slice(&padding);
+
+    (out, pad_len, padding)
+}
+
+/// In-place variant if you own the buffer: appends padding to `packet` and returns the pad length.
+/// (No padding bytes are returned here; call `generate_padding_bytes` yourself if you need them.)
+#[inline]
+pub fn apply_padding_in_place(packet: &mut Vec<u8>) -> usize {
+    let pad_len = calculate_padding_len(packet.len());
+    if pad_len > 0 {
+        let padding = generate_padding_bytes(pad_len);
+        packet.extend_from_slice(&padding);
+    }
+    pad_len
+}
+
+///////////////////////////
+// Interface structs //////
+///////////////////////////
+
 pub struct Utils {
     pub party_id: String,
 }
@@ -355,11 +409,12 @@ impl SetupNode {
         low: u64,
         high: u64,
         test: f32,
-    ) -> Result<(Vec<u8>, usize)> {
-        let chunk = involute::get_chunk_size(packet);
-        let inv = involute::cond_involute_packet(packet, private_key, chunk, low, high, test)
+    ) -> Result<(Vec<u8>, usize, usize)> {
+        let (padded_packet, padding_len, _padding_bytes) = apply_padding(packet);
+        let chunk = involute::get_chunk_size(padded_packet.as_slice());
+        let inv = involute::cond_involute_packet(&padded_packet, private_key, chunk, low, high, test)
             .map_err(|_| Error::Mismatch)?;
-        Ok((inv, chunk))
+        Ok((inv, chunk, padding_len))
     }
 
     pub fn encrypt_data(&self, data: &[u8], private_key: &[u8]) -> (Vec<u8>, [u8; 8]) {
@@ -682,7 +737,7 @@ pub fn setup_node(
     cond_low: f32,
     cond_high: f32,
     encrypt: bool,
-) -> Result<(/* public */ (Vec<u8>, Vec<u8>), /* private */ (Vec<u8>, u64, u64, Vec<u8>))> {
+) -> Result<(/* public */ (Vec<u8>, Vec<u8>), /* private */ (Vec<u8>, u64, u64, Vec<u8>, usize))> {
     let node = SetupNode::new("Authoriser");
     let mut seed = [0u8; 32];
     rand::rng().fill_bytes(&mut seed);
@@ -699,12 +754,12 @@ pub fn setup_node(
 
     let test_val = (cond_low + cond_high) / 2.0;
     let (lo, hi) = node.implement_conditions(cond_low, cond_high, &private_key)?;
-    let (obf, _) = node
+    let (obf, _, padding) = node
         .obfuscate_data(&encrypted, &private_key, lo, hi, test_val)
         .expect("obf");
 
     Ok(( (obf, public_key.clone()),
-      (private_key, lo, hi, nonce) ))
+      (private_key, lo, hi, nonce, padding) ))
 }
 
 pub fn distribute_data(public_data: &(Vec<u8>, Vec<u8>), stream_mode: &str, num_parties: u64) -> Result<Vec<Vec<u8>>> {
@@ -750,12 +805,12 @@ pub fn cycle_key(encrypted_packet: &[u8], node_label: &str) -> Result<Vec<u8>> {
 }
 
 pub fn decrypt_node(
-    private_data: &(Vec<u8>, u64, u64, Vec<u8>),
+    private_data: &(Vec<u8>, u64, u64, Vec<u8>, usize),
     test_value: f32,
     encrypt: bool,
     packets: &[Vec<u8>],
 ) -> Result<Vec<u8>> {
-    let (ref priv_key, lo, hi, ref nonce) = *private_data;
+    let (ref priv_key, lo, hi, ref nonce, padding_len) = *private_data;
 
     let dec = DecryptNode::new("Veriphier");
     let collected = dec.collect_packets(packets)?;
@@ -765,7 +820,19 @@ pub fn decrypt_node(
     println!("Mode: {}\n", mode);
     let recombined = dec.reassemble_data(&streams, mode)?;
 
-    let (recov, _) = dec.obfuscate_data(&recombined, priv_key, lo, hi, test_value)?;
+    let (mut recov, _) = dec.obfuscate_data(&recombined, priv_key, lo, hi, test_value)?;
+    // Safely strip padding if present
+    if padding_len > 0 {
+        let pad = padding_len;
+        if pad <= recov.len() {
+            let new_len = recov.len() - pad;
+            recov.truncate(new_len);
+        } else {
+            // Padding larger than recovered buffer — treat as error to avoid panics.
+            return Err(Error::Mismatch.into()); // or define a more specific error variant
+        }
+    }
+
     if encrypt {
         // CTR path
         let nonce8: [u8; 8] = nonce.as_slice().try_into().map_err(|_| Error::AesGcm)?; // reusing error

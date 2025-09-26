@@ -201,10 +201,18 @@ export class SetupNode extends Utils {
         lowBound: bigint,
         highBound: bigint,
         testValue: number
-    ): [Uint8Array, number] {
+    ): [Uint8Array, number, number] {
+        const paddingLen = utils.calculatePaddingLength(packet.length);
+        if (paddingLen > 0) {
+            const padding = utils.generatePaddingBytes(paddingLen);
+            const padded = new Uint8Array(packet.length + paddingLen);
+            padded.set(packet, 0);
+            padded.set(padding, packet.length);
+            packet = padded;
+        }
         const chunkSize = vc.getChunkSize(packet);
         const invPacket = vc.condInvolutePacket(packet, privateKey, chunkSize, lowBound, highBound, testValue);
-        return [invPacket, chunkSize];
+        return [invPacket, chunkSize, paddingLen];
     }
 
     /**
@@ -628,7 +636,7 @@ export async function setupNode(
     const lowVal = BigInt(lowValNum);
     const highVal = BigInt(highValNum);
 
-    const [obfData] = setupNode.obfuscateData(encrypted, privateKey, lowVal, highVal, testVal);
+    const [obfData,_,padding] = setupNode.obfuscateData(encrypted, privateKey, lowVal, highVal, testVal);
 
     const publicData: Record<string, any> = {
         data: obfData,
@@ -639,7 +647,8 @@ export async function setupNode(
         key: privateKey,
         low_val: lowVal,
         high_val: highVal,
-        nonce,
+        nonce: nonce,
+        padding: padding
     };
 
     return [publicData, privateData];
@@ -713,14 +722,16 @@ export async function decryptNode(
     const streams = dec.reconstructData(recovered);
     const reconstructed = dec.reassembleData(streams, packetList[0].mode);
 
-    const [deobf] = dec.obfuscateData(
+    let [deobf,_] = dec.obfuscateData(
         reconstructed,
         privateData.key as Uint8Array,
         privateData.low_val as bigint,
         privateData.high_val as bigint,
         testValue
     );
-
+    deobf = privateData.padding > 0
+        ? deobf.subarray(0, deobf.length - privateData.padding)
+        : deobf;
     if (encrypt) {
         // if your utils.decryptAESCTR is async in the browser build, await it here
         const plaintext = await dec.decryptData(

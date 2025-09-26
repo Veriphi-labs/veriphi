@@ -199,3 +199,48 @@ export function recombineInterleaved(numStreams: number, data: Uint8Array): Uint
   }
   return out;
 }
+
+/**
+ * Calculate how many bytes must be appended so that (currentLen + n)
+ * is BOTH even and divisible by 3 — i.e., divisible by 6.
+ *
+ * Math trick: find the smallest n ≥ 0 with (currentLen + n) % 6 === 0
+ * => n = (6 - (currentLen % 6)) % 6
+ */
+export function calculatePaddingLength(currentLen: number): number {
+  if (currentLen < 0 || !Number.isInteger(currentLen)) {
+    throw new TypeError("currentLen must be a non-negative integer");
+  }
+  return (6 - (currentLen % 6)) % 6;
+}
+
+/**
+ * Generate cryptographically secure random padding bytes.
+ * Returns an empty Uint8Array when paddingLen == 0.
+ */
+export function generatePaddingBytes(paddingLen: number): Uint8Array {
+  if (paddingLen < 0 || !Number.isInteger(paddingLen)) {
+    throw new TypeError("paddingLen must be a non-negative integer");
+  }
+  if (paddingLen === 0) return new Uint8Array(0);
+  // Buffer is a Uint8Array subclass; OK to return directly.
+  return randomBytes(paddingLen);
+}
+
+/**
+ * Convenience helper: given a packet, compute and append padding bytes
+ * so the final length is divisible by 6. Returns both padding and padded packet.
+ */
+export function padPacket(
+  packet: Uint8Array
+): { padded: Uint8Array; padding: Uint8Array } {
+  const padLen = calculatePaddingLength(packet.length);
+  const padding = generatePaddingBytes(padLen);
+  if (padLen === 0) {
+    return { padded: packet, padding };
+  }
+  const padded = new Uint8Array(packet.length + padLen);
+  padded.set(packet, 0);
+  padded.set(padding, packet.length);
+  return { padded, padding };
+}
