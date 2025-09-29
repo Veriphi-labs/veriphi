@@ -1,0 +1,24 @@
+[package]
+name = "veriphi-core-wasi"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-only"
+description = "WASM-WASI bindings for veriphi-core"
+repository = "https://github.com/veriphi-labs/veriphi"
+readme = "../../README.md"
+
+[lib]
+crate-type = ["cdylib"]
+name = "veriphi"
+path = "src/lib.rs"
+
+[dependencies]
+veriphi-core = { path = "../veriphi-core" }
+# wee_aloc is a WebAssembly optimized allocator, which is needed to use non-numeric types like strings.
+# See https://docs.rs/wee_alloc/latest/wee_alloc/
+wee_alloc = "0.4.5"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1

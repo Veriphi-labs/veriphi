@@ -3,5 +3,6 @@ members = [
     "veriphi-core",
     "veriphi-core-py",
     "veriphi-core-wasm", 
+    "veriphi-core-wasi", 
     "veriphi-sdk"]
 resolver = "2"
