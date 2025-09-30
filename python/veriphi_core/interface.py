@@ -1,6 +1,7 @@
 import veriphi_core as vc
 import numpy as np
-import os 
+import os
+import secrets
 import struct
 from numpy.typing import NDArray
 from . import utils as utils
@@ -276,49 +277,7 @@ class EncryptNode(Utils):
             party_id (str): Unique identifier for the party.
         """
         super().__init__(party_id) 
-    
-    def unpackage_data(self, data: bytes) -> tuple[bytes, NDArray[np.uint8], str, int]:
-        """
-        Unpackage encrypted data into its constituent components.
-        
-        Extracts the public key, packet data, mode, and label from a packaged
-        data structure that was previously created by package_data.
-        
-        Args:
-            data (bytes): The packaged data to unpack.
-        
-        Returns:
-            tuple[bytes, NDArray[np.uint8], str, str]: A tuple containing:
-                - public_key (bytes): The extracted public key
-                - packet (NDArray[np.uint8]): The packet data as numpy array
-                - mode (str): The encryption mode
-                - label (str): The node label identifier
-        """
-        offset = 8
-        
-        # Extract public_key
-        pub_key_size = struct.unpack('<Q', data[offset:offset+8])[0]
-        offset += 8
-        public_key = data[offset:offset+pub_key_size]
-        offset += pub_key_size
-        
-        # Extract packet
-        packet_size = struct.unpack('<Q', data[offset:offset+8])[0]
-        offset += 8
-        packet_bytes = data[offset:offset+packet_size]
-        packet = np.frombuffer(packet_bytes, dtype=np.uint8)
-        offset += packet_size
-        
-        # Extract mode
-        mode_size = struct.unpack('<Q', data[offset:offset+8])[0]
-        offset += 8
-        mode = data[offset:offset+mode_size].decode('utf-8')
-        offset += mode_size
-        
-        # Extract label
-        label = struct.unpack('<Q', data[offset:offset+8])[0]
-        
-        return public_key, packet, mode, label
+
     
     def encrypt_data(self, packet: NDArray[np.uint8], private_key: bytes, public_key: bytes, mode: str, identity: int) -> dict:
         """
@@ -772,7 +731,7 @@ def setup_node(data: NDArray[np.uint8],cond_low: np.float32, cond_high: np.float
             - private_data: Dict with private key and bound values for de-obfuscation.
     """
     setup_node = SetupNode(party_id = "Authoriser")
-    seed = np.frombuffer(os.urandom(32), np.uint8)
+    seed = np.frombuffer(secrets.token_bytes(32), np.uint8)
     public_key = setup_node.gen_public_key(seed)
     private_key= setup_node.gen_private_key("obf_private_key", seed)
     if encrypt:
@@ -821,7 +780,7 @@ def encrypt_node(packet: dict, node_label: str =  "encryption_node") -> bytes:
     """
     encrypt_node = EncryptNode(node_label)
     public_key, data_packet, mode, identity = encrypt_node.unpackage_data(packet)
-    private_key = encrypt_node.gen_private_key("label" + "private_key", np.frombuffer(os.urandom(32), np.uint8))
+    private_key = encrypt_node.gen_private_key("label" + "private_key", np.frombuffer(secrets.token_bytes(32), np.uint8))
     encrypted   = encrypt_node.encrypt_data(data_packet, private_key, public_key, mode, identity)
     return encrypt_node.package_data(encrypted, mode, identity)
 
@@ -838,7 +797,7 @@ def cycle_key(encrypted_packet: dict, node_label: str = "encryption_node") -> by
     """
     encrypt_node = EncryptNode(node_label)
     encrypted_data = encrypt_node._unpack_encrypted_data(encrypted_packet)
-    new_private_key = encrypt_node.gen_private_key("cycled_key",np.frombuffer(os.urandom(32),np.uint8))
+    new_private_key = encrypt_node.gen_private_key("cycled_key",np.frombuffer(secrets.token_bytes(32),np.uint8))
     cycled_data = encrypt_node.cycle_key(encrypted_data["packet"],
                                          encrypted_data["private_key"],
                                          new_private_key, 
