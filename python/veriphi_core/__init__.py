@@ -11,7 +11,7 @@ from .veriphi_core_py import (
     involute_packet,
 )
 
-from .utils import *          # or name specific functions
+from .utils import *
 from .interface import * 
 
 __all__ = [

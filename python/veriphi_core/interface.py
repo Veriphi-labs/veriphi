@@ -277,49 +277,7 @@ class EncryptNode(Utils):
             party_id (str): Unique identifier for the party.
         """
         super().__init__(party_id) 
-    
-    def unpackage_data(self, data: bytes) -> tuple[bytes, NDArray[np.uint8], str, int]:
-        """
-        Unpackage encrypted data into its constituent components.
-        
-        Extracts the public key, packet data, mode, and label from a packaged
-        data structure that was previously created by package_data.
-        
-        Args:
-            data (bytes): The packaged data to unpack.
-        
-        Returns:
-            tuple[bytes, NDArray[np.uint8], str, str]: A tuple containing:
-                - public_key (bytes): The extracted public key
-                - packet (NDArray[np.uint8]): The packet data as numpy array
-                - mode (str): The encryption mode
-                - label (str): The node label identifier
-        """
-        offset = 8
-        
-        # Extract public_key
-        pub_key_size = struct.unpack('<Q', data[offset:offset+8])[0]
-        offset += 8
-        public_key = data[offset:offset+pub_key_size]
-        offset += pub_key_size
-        
-        # Extract packet
-        packet_size = struct.unpack('<Q', data[offset:offset+8])[0]
-        offset += 8
-        packet_bytes = data[offset:offset+packet_size]
-        packet = np.frombuffer(packet_bytes, dtype=np.uint8)
-        offset += packet_size
-        
-        # Extract mode
-        mode_size = struct.unpack('<Q', data[offset:offset+8])[0]
-        offset += 8
-        mode = data[offset:offset+mode_size].decode('utf-8')
-        offset += mode_size
-        
-        # Extract label
-        label = struct.unpack('<Q', data[offset:offset+8])[0]
-        
-        return public_key, packet, mode, label
+
     
     def encrypt_data(self, packet: NDArray[np.uint8], private_key: bytes, public_key: bytes, mode: str, identity: int) -> dict:
         """
