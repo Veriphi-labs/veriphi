@@ -26,6 +26,7 @@ clean-rust:
 clean-python:
 	@echo "==> Clean Python artifacts"
 	rm -rf python/**/__pycache__ python/**/.pytest_cache python/**/build python/**/dist python/**/*.egg-info || true
+	rm -rf python/**/veriphi_core_py* || true
 	rm -rf .pytest_cache || true
 
 clean-node:

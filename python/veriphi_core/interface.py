@@ -1,6 +1,5 @@
 import veriphi_core as vc
 import numpy as np
-import os
 import secrets
 import struct
 from numpy.typing import NDArray
