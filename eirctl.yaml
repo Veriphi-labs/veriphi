@@ -1,0 +1,15 @@
+contexts:
+  rust:
+    container:
+      name: docker.io/rust:1.90.0-slim-trixie
+
+tasks:
+  build:release:wasi:prewiev1:
+    description: |
+      Use wasi preview 1 for building a release WASM artifact
+    context: rust
+    dir: rust
+    command: 
+      - |
+        rustup target add wasm32-wasip1
+        cargo build --release --target wasm32-wasip1 --package veriphi-core-wasi --locked

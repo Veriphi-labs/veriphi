@@ -3,6 +3,7 @@
 # ============================
 **/target/
 **/*.rs.bk
+# we should probably commit the Cargo.lock for now
 **/Cargo.lock
 
 # ============================
@@ -32,7 +33,6 @@ venv/
 **/*.wasm
 **/*.node
 **/wasm-pack.log
-**/package-lock.json
 **/yarn.lock
 .npm/
 .pnp/
