@@ -19,7 +19,7 @@ fn read_slice<'a>(ptr_: u32, len: u32) -> &'a [u8] {
 }
 
 // Read a descriptor table of (ptr,len) pairs, count entries.
-pub fn read_slice_table_owned(desc_ptr: u32, count: u32) -> Vec<Vec<u8>> {
+pub fn read_slice_table(desc_ptr: u32, count: u32) -> Vec<Vec<u8>> {
     let mut out = Vec::with_capacity(count as usize);
     let mut p = desc_ptr as *const u32;
 
@@ -296,7 +296,7 @@ pub extern "C" fn map_data(
 ) -> i32 {
     let pub_key = read_slice(pub_ptr, pub_len);
     let priv_key = read_slice(priv_ptr, priv_len);
-    let data_vec = read_slice_table_owned(data_desc_ptr, data_count);
+    let data_vec = read_slice_table(data_desc_ptr, data_count);
 
     let out = encrypt::map_data(pub_key, priv_key, identity as usize, data_vec);
     let need = out.len();
@@ -324,8 +324,8 @@ pub extern "C" fn inv_data(
 ) -> i32 {
     unsafe {
         let pub_key = read_slice(pub_ptr, pub_len);
-        let priv_vec = read_slice_table_owned(priv_desc_ptr, priv_count);
-        let data_vec = read_slice_table_owned(data_desc_ptr, data_count);
+        let priv_vec = read_slice_table(priv_desc_ptr, priv_count);
+        let data_vec = read_slice_table(data_desc_ptr, data_count);
 
         // You had `size = 1 << 8` in JS path; keep same behavior if needed.
         let size = 1usize << 8;
